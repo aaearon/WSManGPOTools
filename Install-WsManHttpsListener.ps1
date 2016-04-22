@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Is used to install an HTTPS WSMan Listener on a computer with a valid certificate.
 
@@ -66,43 +66,70 @@ catch
 }
 [String] $Thumbprint = ''
 # First try and find a certificate that is used to the FQDN of the machine
-if ($DNSNameType -in 'Both','FQDN')
+if (('Both','FQDN') -contains $DNSNameType)
 {
     [String] $HostName = [System.Net.Dns]::GetHostByName($ENV:computerName).Hostname
     if ($MatchAlternate)
     {
-        $Thumbprint = (get-childitem -Path Cert:\localmachine\my | Where-Object { 
-		        ($_.Extensions.EnhancedKeyUsages.FriendlyName -contains 'Server Authentication') -and
+        $Thumbprint = (get-childitem -Path Cert:\localmachine\my | Where-Object {
+		        { foreach ($ext in $_.Extensions) {
+                          foreach ($EKU in $ext.EnhancedKeyUsages) {
+                            if($EKU.value -eq "1.3.6.1.5.5.7.3.1") {
+                              return $true
+                            }
+                          }
+                        } } -and
 		        ($_.IssuerName.Name -eq $Issuer) -and
-		        ($HostName -in $_.DNSNameList.Unicode) -and
+		        ($_.DNSNameList.Unicode -contains $HostName) -and
                 ($_.Subject -eq "CN=$HostName") } | Select-Object -First 1
             ).Thumbprint
     }
     else
     {
         $Thumbprint = (get-childitem -Path Cert:\localmachine\my | Where-Object { 
-		        ($_.Extensions.EnhancedKeyUsages.FriendlyName -contains 'Server Authentication') -and
-		        ($_.IssuerName.Name -eq $Issuer) -and
+		        { foreach ($ext in $_.Extensions) {
+                          foreach ($EKU in $ext.EnhancedKeyUsages) {
+                            if($EKU.value -eq "1.3.6.1.5.5.7.3.1") {
+                              return $true
+                            }
+                          }
+                        } } -and ($_.IssuerName.Name -eq $Issuer) -and
                 ($_.Subject -eq "CN=$HostName") } | Select-Object -First 1
-            ).Thumbprint    
+            ).Thumbprint
+
+get-childitem -Path Cert:\localmachine\my | Where-Object { 
+}
+
     } # if
 }
-if (($DNSNameType -in 'Both','ComputerName') -and -not $Thumbprint)
+if (('Both','ComputerName') -contains $DNSNameType -and -not $Thumbprint)
 {
     # If could not find an FQDN cert, try for one issued to the computer name
     [String] $HostName = $ENV:ComputerName
     if ($MatchAlternate) {
-        $Thumbprint = (get-childitem -Path Cert:\localmachine\my | Where-Object { 
-		        ($_.Extensions.EnhancedKeyUsages.FriendlyName -contains 'Server Authentication') -and
+        $Thumbprint = (get-childitem -Path Cert:\localmachine\my | Where-Object {
+		        { foreach ($ext in $_.Extensions) {
+                          foreach ($EKU in $ext.EnhancedKeyUsages) {
+                            if($EKU.value -eq "1.3.6.1.5.5.7.3.1") {
+                              return $true
+                            }
+                          }
+                        } } -and
 		        ($_.IssuerName.Name -eq $Issuer) -and
-		        ($HostName -in $_.DNSNameList.Unicode) -and
+		        ($_.DNSNameList.Unicode -contains $HostName) -and
                 ($_.Subject -eq "CN=$HostName") } | Select-Object -First 1
             ).Thumbprint
     }
     else
     {
-        $Thumbprint = (get-childitem -Path Cert:\localmachine\my | Where-Object { 
-		        ($_.Extensions.EnhancedKeyUsages.FriendlyName -contains 'Server Authentication') -and
+        $Thumbprint = (get-childitem -Path Cert:\localmachine\my | Where-Object {
+		        { foreach ($ext in $_.Extensions) {
+                          foreach ($EKU in $ext.EnhancedKeyUsages) {
+                            if($EKU.value -eq "1.3.6.1.5.5.7.3.1") {
+                              return $true
+                            }
+                          }
+                        } } -and
 		        ($_.IssuerName.Name -eq $Issuer) -and
                 ($_.Subject -eq "CN=$HostName") } | Select-Object -First 1
             ).Thumbprint    
