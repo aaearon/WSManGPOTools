@@ -174,4 +174,4 @@ else
     {
         Add-Content -Path $LogFilename -Value "$(Get-Date) - $($ENV:ComputerName): $Message`n`r" 
     }
-} # if
+}
