@@ -97,10 +97,7 @@ if (('Both','FQDN') -contains $DNSNameType)
                 ($_.Subject -eq "CN=$HostName") } | Select-Object -First 1
             ).Thumbprint
 
-get-childitem -Path Cert:\localmachine\my | Where-Object { 
-}
-
-    } # if
+    }
 }
 if (('Both','ComputerName') -contains $DNSNameType -and -not $Thumbprint)
 {
@@ -133,8 +130,8 @@ if (('Both','ComputerName') -contains $DNSNameType -and -not $Thumbprint)
 		        ($_.IssuerName.Name -eq $Issuer) -and
                 ($_.Subject -eq "CN=$HostName") } | Select-Object -First 1
             ).Thumbprint    
-    } # if
-} # if
+    }
+}
 if ($Thumbprint)
 {
     # A certificate was found, so use it to enable the HTTPS WinRM listener
